@@ -22,6 +22,15 @@ val Red = Color(0xFFE88D8D)
 val Border = Color(0xFF2A2E37)
 private val rubles = NumberFormat.getIntegerInstance(Locale.forLanguageTag("ru-RU"))
 fun rub(value: Long): String = "${rubles.format(value)} ₽"
+fun businessCount(value: Int): String {
+    val word = when {
+        value % 100 in 11..14 -> "бизнесов"
+        value % 10 == 1 -> "бизнес"
+        value % 10 in 2..4 -> "бизнеса"
+        else -> "бизнесов"
+    }
+    return "$value $word"
+}
 fun compact(value: Long): String {
     val v = kotlin.math.abs(value.toDouble())
     val sign = if(value < 0) "−" else ""

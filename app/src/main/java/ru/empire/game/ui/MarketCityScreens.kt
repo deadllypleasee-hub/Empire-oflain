@@ -46,7 +46,7 @@ fun LazyListScope.cityScreen(s: GameState, district: Int, choose: (Int)->Unit, m
                     .border(1.dp,if(i==district)Gold else Border,RoundedCornerShape(11.dp)).clickable{choose(i)}.padding(10.dp),horizontalAlignment=Alignment.CenterHorizontally) {
                     Icon(if(s.reputation>=d.reputation)Icons.Outlined.LocationOn else Icons.Outlined.Lock,null,tint=if(i==district)Ink else Gold,modifier=Modifier.size(18.dp))
                     Text(d.name,fontSize=10.sp,color=if(i==district)Ink else White)
-                    Text("${s.businesses.count{it.district==i}} бизнесов",fontSize=9.sp,color=if(i==district)Ink.copy(alpha=.65f) else Muted)
+                    Text(businessCount(s.businesses.count{it.district==i}),fontSize=9.sp,color=if(i==district)Ink.copy(alpha=.65f) else Muted)
                 }
             }
         }
