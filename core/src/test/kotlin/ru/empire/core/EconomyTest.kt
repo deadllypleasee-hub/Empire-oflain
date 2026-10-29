@@ -105,6 +105,7 @@ class EconomyTest {
         assertFalse(Economy.borrow(state(), 1_000_000, 30).success)
         assertFalse(Economy.borrow(state(), -100, 30).success)
         assertFalse(Economy.borrow(state(), 1_000, 0).success)
+        assertFalse(Economy.borrow(state().copy(cash = Economy.MAX_MONEY), 1_000, 30).success)
         val borrowed = Economy.borrow(state(), 1_000, 90).state
         val repaid = Economy.repay(borrowed)
         assertTrue(repaid.success)

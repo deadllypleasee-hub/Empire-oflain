@@ -141,7 +141,7 @@ fun businessIcon(name: String): ImageVector = when(name) {
         Column(Modifier.weight(1f).padding(start=13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(t.name, style = MaterialTheme.typography.titleMedium)
             Text("${Catalog.districts[b.district].name} · Ур. ${b.level}",color=Muted,style=MaterialTheme.typography.bodyMedium)
-            Text("+${compact(f.profit)} / день",color=if(f.profit>=0) Green else Red,style=MaterialTheme.typography.bodyMedium,fontWeight=FontWeight.Medium)
+            Text("${if(f.profit>=0) "+" else ""}${compact(f.profit)} / день",color=if(f.profit>=0) Green else Red,style=MaterialTheme.typography.bodyMedium,fontWeight=FontWeight.Medium)
         }
         Icon(Icons.Outlined.ChevronRight,null,tint=Muted,modifier=Modifier.size(20.dp))
     }

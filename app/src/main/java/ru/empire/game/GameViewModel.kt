@@ -51,14 +51,15 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
-    private suspend fun transact(action: ((GameState) -> ActionResult)? = null) = mutex.withLock {
+    private suspend fun transact(action: ((GameState) -> ActionResult)? = null, reportOffline: Boolean = false) = mutex.withLock {
         val old = mutable.value ?: return@withLock
         try {
-            val advanced = advance(old).state
-            val result = action?.invoke(advanced) ?: ActionResult(advanced, "")
+            val elapsed = advance(old)
+            val result = action?.invoke(elapsed.state) ?: ActionResult(elapsed.state, "")
             // Never expose an economy mutation before durable persistence succeeds.
             withContext(Dispatchers.IO) { store.save(result.state) }
             mutable.value = result.state
+            if (reportOffline && elapsed.days >= 2) _offline.value = elapsed
             errors.value = null
             if (result.message.isNotEmpty()) events.tryEmit(result.message)
             if (action != null && result.success && result.state.settings.sound) {
@@ -76,7 +77,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     fun foreground() {
         ReminderWorker.cancel(getApplication())
         if (ticker?.isActive == true) return
-        ticker = viewModelScope.launch { while (isActive) { transact(); delay(1_000) } }
+        ticker = viewModelScope.launch {
+            transact(reportOffline = true)
+            while (isActive) { delay(1_000); transact() }
+        }
     }
     fun background() {
         ticker?.cancel(); ticker = null

@@ -154,6 +154,7 @@ object Economy {
         if (s.loan != null) return reject(s, "Сначала погасите текущий кредит")
         if (term != 30 && term != 90) return reject(s, "Недопустимый срок")
         if (amount < 1_000 || amount > loanLimit(s)) return reject(s, "Сумма вне кредитного лимита")
+        if (s.cash > MAX_MONEY - amount) return reject(s, "Достигнут предельный баланс")
         val total = money(amount * if (term == 30) 1.12 else 1.28)
         val loan = Loan(amount, total, ceil(total.toDouble() / term).toLong(), term, term)
         return ActionResult(addNews(s.copy(cash = s.cash + amount, loan = loan), "Кредит одобрен", "$amount ₽ на $term игровых дней. Полная стоимость: $total ₽."), "Деньги на счёте")

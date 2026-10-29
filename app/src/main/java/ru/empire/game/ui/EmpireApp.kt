@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,7 +70,9 @@ import ru.empire.game.GameViewModel
                         Text("ПУТЬ МИЛЛИАРДЕРА",style=MaterialTheme.typography.labelSmall,color=Muted,fontSize=8.sp,letterSpacing=1.5.sp)
                     }
                     IconButton(onClick={screen="settings"}) { Icon(Icons.Outlined.Settings,"Настройки",tint=Muted,modifier=Modifier.size(21.dp)) }
-                    Box(Modifier.size(42.dp).background(Gold.copy(alpha=.1f),CircleShape).border(1.dp,Gold.copy(alpha=.45f),CircleShape).clickable {screen="profile"},contentAlignment=Alignment.Center) {
+                    Box(Modifier.size(48.dp).background(Gold.copy(alpha=.1f),CircleShape).border(1.dp,Gold.copy(alpha=.45f),CircleShape)
+                        .semantics { contentDescription = "Профиль предпринимателя. Уровень ${Economy.level(s)}" }
+                        .clickable {screen="profile"},contentAlignment=Alignment.Center) {
                         Text("${Economy.level(s)}",color=Gold,fontWeight=FontWeight.SemiBold,fontSize=14.sp)
                     }
                 }
