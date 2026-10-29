@@ -101,6 +101,19 @@ class EconomyTest {
         assertNull(s.loan)
         assertEquals(3_360, s.history.sumOf { it.debt })
     }
+    @Test fun `advertising boosts exactly seven settled days then expires`() {
+        var s = Economy.improve(state().copy(cash = 100_000), "coffee_stand", "ad").state
+        repeat(8) { index ->
+            val before = s
+            s = Economy.advance(s, s.highWaterMs + Economy.DAY_MS).state
+            val plainRevenue = Economy.finance(before.businesses.single().copy(advertisingUntil = 0),
+                s.copy(reputation = before.reputation)).revenue
+            val actual = s.history.last().revenue
+            if (index < 7) assertTrue(actual > plainRevenue * 1.30, "Day ${index + 1}")
+            else assertEquals(plainRevenue, actual)
+        }
+        assertTrue(Economy.improve(s, "coffee_stand", "ad").success)
+    }
     @Test fun `loan limit and early payoff are enforced`() {
         assertFalse(Economy.borrow(state(), 1_000_000, 30).success)
         assertFalse(Economy.borrow(state(), -100, 30).success)

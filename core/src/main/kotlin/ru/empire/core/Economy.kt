@@ -24,7 +24,7 @@ object Economy {
         val hash = (b.kind.hashCode().toLong() * 31 + day / 5 * 17).let { Math.floorMod(it, 21L) }
         return .90 + hash / 100.0
     }
-    fun finance(b: Business, s: GameState): Finance {
+    fun finance(b: Business, s: GameState, closingDay: Boolean = false): Finance {
         val t = Catalog.type(b.kind)
         val d = Catalog.districts[b.district]
         val event = activeEvent(s)
@@ -32,7 +32,7 @@ object Economy {
         val popularity = .82 + b.popularity.coerceIn(0.0, 100.0) / 250.0
         val revenue = money(t.dailyRevenue * scale * (1 + b.equipment * .20) * (1 + b.staff * .13) * popularity *
             d.salesFactor * competitor(b, s.day) * (event?.sales ?: 1.0) *
-            (if (b.advertisingUntil > s.day) 1.35 else 1.0) * (.94 + s.reputation / 500.0))
+            (if (b.advertisingUntil > s.day || (closingDay && b.advertisingUntil == s.day)) 1.35 else 1.0) * (.94 + s.reputation / 500.0))
         return Finance(
             revenue,
             money(t.rent * d.rentFactor * (1 + (b.level - 1) * .20)),
@@ -42,8 +42,8 @@ object Economy {
             money(revenue * .06),
         )
     }
-    fun finances(s: GameState): Finance {
-        val all = s.businesses.map { finance(it, s) }
+    fun finances(s: GameState, closingDay: Boolean = false): Finance {
+        val all = s.businesses.map { finance(it, s, closingDay) }
         return Finance(all.sumOf { it.revenue }, all.sumOf { it.rent }, all.sumOf { it.wages }, all.sumOf { it.service }, all.sumOf { it.supplies }, all.sumOf { it.tax })
     }
     fun addNews(s: GameState, title: String, detail: String) = s.copy(news = (listOf(News(title, detail, s.day)) + s.news).take(25))
@@ -73,7 +73,7 @@ object Economy {
             val idx = kotlin.random.Random(s.seed xor (s.day * 1_103_515_245L)).nextInt(Catalog.events.size)
             s = addNews(s.copy(eventId = idx, eventUntil = s.day + 3), Catalog.events[idx].title, Catalog.events[idx].description)
         }
-        val f = finances(s)
+        val f = finances(s, closingDay = true)
         var loan = s.loan
         var payment = 0L
         var rep = s.reputation
@@ -98,7 +98,7 @@ object Economy {
             experience = (s.experience + 8 + s.businesses.size * 2).coerceAtMost(1_000_000),
             investments = s.investments.filter { it.dueDay > s.day },
             businesses = s.businesses.map { b -> b.copy(popularity = (b.popularity + .18 + b.staff * .025 +
-                (if (b.advertisingUntil > s.day) 1.1 else 0.0)).coerceAtMost(100.0), lifetimeProfit = (b.lifetimeProfit + finance(b, s).profit).coerceIn(-MAX_MONEY, MAX_MONEY)) },
+                (if (b.advertisingUntil >= s.day) 1.1 else 0.0)).coerceAtMost(100.0), lifetimeProfit = (b.lifetimeProfit + finance(b, s, closingDay = true).profit).coerceIn(-MAX_MONEY, MAX_MONEY)) },
             history = (s.history + report).takeLast(30), bankrupt = bankruptcy)
         if (bankruptcy) s = addNews(s, "Финансовая несостоятельность", "Предприятия остановлены. Пройдите реструктуризацию, чтобы начать снова.")
         return s
